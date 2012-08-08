@@ -16,7 +16,7 @@
 
 <script>
 $(document).ready(function(){
-    $('#login-dialog').modal({backdrop:true});    
+    $('#login-dialog').modal({backdrop:"static", keyboard:false});
     ko.applyBindings(viewModel);
 });
 
