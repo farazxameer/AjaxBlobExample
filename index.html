@@ -1,0 +1,167 @@
+<html>
+	<head>
+        <!-- BootStrap CSS -->
+        <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+        <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">        
+        <!-- Knockout -->
+        <script type="text/javascript" src="http://cloud.github.com/downloads/SteveSanderson/knockout/knockout-2.1.0.js"></script>
+        <script type="text/javascript" src="https://raw.github.com/SteveSanderson/knockout.mapping/master/build/output/knockout.mapping-latest.js"></script>
+
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="http://twitter.github.com/bootstrap/assets/js/bootstrap-transition.js"></script>
+        <script type="text/javascript" src="http://twitter.github.com/bootstrap/assets/js/bootstrap-modal.js"></script>
+
+	</head>
+	<body>
+
+<script>
+$(document).ready(function(){
+    $('#login-dialog').modal({backdrop:true});    
+    ko.applyBindings(viewModel);
+});
+
+var bloburl = "";
+
+var authenticationService = "http://localhost:210/login/";
+var data;
+var username;
+var retryCount = 0;
+var viewModel = {
+    items: ko.observableArray()
+};
+
+this.Actions = new function(){
+    this.login = function(){
+        username = $("#username").val();
+        $("#username").val("");
+        $('#login-dialog').modal("hide");   
+        Actions.getUrl(function(url){
+            bloburl = url;
+            /*$.getJSON(url, function(data){
+                console.log(data);
+                viewModel = ko.mapping.fromJS(data);
+                ko.applyBindings(viewModel);
+            });*/
+           Actions.load();
+        });
+    }
+
+    this.getUrl = function(cb){
+        jQuery.ajax(authenticationService + username , {
+            cache:false,
+            dataType: "jsonp",
+            success: function(x){ 
+                url = x.url; 
+                cb(url);
+            }
+        });
+    }
+
+    this.load = function(){
+        Actions.getData(bloburl, function(data){
+            if (data){
+                console.log(data);
+                viewModel = ko.mapping.fromJS(data);
+                ko.applyBindings(viewModel);
+            }
+        });
+    }
+
+    this.getData = function(url, cb){
+    	jQuery.ajax( url, {
+    		cache:false,
+    		dataType: "json",
+    		type:"GET",
+    		success: function(x){ 
+                retryCount = 0;
+                cb(x); 
+            },
+            error: function(){
+                setTimeout(function(){
+                    retryCount++;
+                    if (retryCount<5){
+                        Actions.load();
+                    }
+                }, 500);
+            }
+    	});
+    }
+
+    this.save = function(){
+        var data = ko.toJSON(viewModel);
+        jQuery.ajax( url, {
+            cache:false,
+            dataType: "json",
+            type:"PUT",
+            data:data
+        });
+    }
+
+    this.add = function(){
+        var text = $("#newItem").val();
+        $("#newItem").val("");
+        if (text != ""){
+            viewModel.items.push({ description : text });
+            Actions.save();
+        }
+    }
+
+    this.remove = function(item){
+        viewModel.items.remove(item);
+        Actions.save();
+    }
+}
+
+</script>
+
+
+
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <h3>Todo list items</h3>
+                <div class="span3" data-bind="template: { name: 'item-template', foreach: items }">
+
+                </div>
+            </div>
+            <div class="row-fluid">
+
+                <form class="form-horizontal" style="margin-top:15px;">
+                    <fieldset>
+                        <div class="control-group">
+                            
+                            <input id="newItem" class="input-xlarge" type="text" style="height:initial" /> <a href="javascript:void(0);" class="btn" onclick="Actions.add()"><i class="icon-plus icon-black"></i> Add</a>
+                        </div>
+                    </fieldset>
+                </form>
+
+                    
+            </div>
+        </div>
+
+        <script id="item-template" type="test/knockout">
+            <div>
+                <span data-bind="text: description" class="lead"></span>
+                <a class="btn btn-mini btn-success" href="javascript:void(0);" data-bind="click:Actions.remove"><i class="icon-ok icon-white"></i> Done</a>
+            </div>
+        </script>
+
+        <div class="modal" id="login-dialog">
+            <div class="modal-header">
+              <h3>Enter a username</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <fieldset>
+                        <div class="control-group">
+                            <label class="control-label" for="username">Username</label>
+                            <div class="controls">
+                                <input type="text" id="username" class="input-xlarge" style="height:initial"/> <a href="javascript:void(0);" class="btn btn-primary" onclick="Actions.login();">Login</a>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+
+	</body>
+</html>
