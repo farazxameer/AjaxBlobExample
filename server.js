@@ -2,8 +2,8 @@ var azure = require("azure");
 var app = require('express').createServer();
 app.enable("jsonp callback");
 
-var azureAccount = "two10ra";
-var azureKey = "dmIMUY1mg/qPeOgGmCkO333L26cNcnUA1uMcSSOFMB3cB8LkdDkh02RaYTPLBL8qMqnqazqd6uMxI2bJJEnj0g==";
+var azureAccount = "xxx";
+var azureKey = "yyy";
 var containerName = "container"
 var sessionLifetime = 1; // hours
 
