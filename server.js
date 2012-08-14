@@ -18,7 +18,7 @@ app.get('/login/:username', function(req, res){
 	var url = blobService.generateSharedAccessSignature(containerName, req.params.username, {
 	AccessPolicy : {
 		Permissions : "rwdl",
-		Expiry : getDate();
+		Expiry : getDate()
 	}});
 	res.json({url: url.url()});
 });
